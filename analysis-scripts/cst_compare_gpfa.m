@@ -1,15 +1,14 @@
 %%    
-    dataroot = '/data/raeed/project-data/smile/cst-gainlag';
     if ispc
-        dataroot = 'C:\Users\Raeed\data\project-data\smile\cst-gainlag';
+        dataroot = 'D:\OneDrive - Northeastern University\Action Lab\01 Projects\Batista Collaboration\00 CST\01 Experiment\data\FordEarl';
     end
 
-    file_info = dir(fullfile(dataroot,'library','*COCST*'));
+    file_info = dir(fullfile(dataroot,'*COCST*'));
     filenames = horzcat({file_info.name})';
     
 %% load data
     filenum = 1;
-    td_preproc = load_clean_cst_data(fullfile(dataroot,'library',filenames{filenum}));
+    td_preproc = load_clean_cst_data(fullfile(dataroot,filenames{filenum}));
     
 %% compare gpfa to pca
     td = td_preproc;

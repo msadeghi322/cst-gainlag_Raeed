@@ -1,12 +1,13 @@
 % look at CST/CO neural trajectories
-
+clc
+clear
+close all
 %% Set up
-    dataroot = '/data/raeed/project-data/smile/cst-gainlag';
-    if ispc
-        dataroot = 'C:\Users\Raeed\data\project-data\smile\cst-gainlag';
-    end
+    
+    dataroot = 'D:\OneDrive - Northeastern University\Action Lab\01 Projects\Batista Collaboration\00 CST\01 Experiment\data\FordEarl';
+        
 
-    file_info = dir(fullfile(dataroot,'library','*COCST*'));
+    file_info = dir(fullfile(dataroot,'*COCST*'));
     filenames = horzcat({file_info.name})';
     
 %% Loop through files
@@ -16,8 +17,8 @@ start_time = -0.4;
 co_end_time = 0.5;
 cst_end_time = 5.5;
 filetic = tic;
-for filenum = 41%length(filenames)
-    td = load_clean_cst_data(fullfile(dataroot,'library',filenames{filenum}));
+for filenum = length(filenames)
+    td = load_clean_cst_data(fullfile(dataroot,filenames{filenum}));
     
     % Make sure we have CST trials
     if isempty(td)
@@ -74,7 +75,8 @@ for filenum = 41%length(filenames)
             'color',dir_colors(dirnum,:)))
         hold on
     end
-    trial_idx = getTDidx(td_cst,'task','CST','lambda',lambda_to_use,'trial_id',159);
+    %trial_idx = getTDidx(td_cst,'task','CST','lambda',lambda_to_use,'trial_id',159);
+    trial_idx = getTDidx(td_cst,'task','CST','lambda',lambda_to_use);
     plot_traces(td_cst,struct(...
         'signals',{{'M1_pca_full',1:3}},...
         'trials_to_use',trial_idx,...

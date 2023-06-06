@@ -1,19 +1,20 @@
 % look at CST neural trajectories
 
 %% Set up
-    dataroot = '/data/raeed/project-data/smile/cst-gainlag';
+    %dataroot = '/data/raeed/project-data/smile/cst-gainlag';
     if ispc
-        dataroot = 'C:\Users\Raeed\data\project-data\smile\cst-gainlag';
+        dataroot = 'D:\OneDrive - Northeastern University\Action Lab\01 Projects\Batista Collaboration\00 CST\01 Experiment\data\FordEarl';
+        %dataroot = 'C:\Users\Raeed\data\project-data\smile\cst-gainlag';
     end
 
-    file_info = dir(fullfile(dataroot,'library','*COCST*'));
+    file_info = dir(fullfile(dataroot,'*COCST*'));
     filenames = horzcat({file_info.name})';
     
 %% Select a file
     file_query = struct(...
         'monkey','Ford',...
         'date','20180627');
-    td_preproc = load_clean_cst_data(fullfile(dataroot,'library',sprintf('%s_%s_COCST_TD.mat',file_query.monkey,file_query.date)));
+    td_preproc = load_clean_cst_data(fullfile(dataroot,sprintf('%s_%s_COCST_TD.mat',file_query.monkey,file_query.date)));
     
     % Make sure we have CST trials
     assert(~isempty(td_preproc),sprintf('Incomplete dataset for file %s %s\n', file_query.monkey,file_query.date))

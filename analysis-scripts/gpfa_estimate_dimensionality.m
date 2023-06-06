@@ -2,7 +2,8 @@
     file_query = struct(...
         'monkey','Earl',...
         'date','20190716');
-    datadir = 'data';
+    datadir = 'D:\OneDrive - Northeastern University\Action Lab\01 Projects\Batista Collaboration\00 CST\01 Experiment\data\FordEarl';
+    %datadir = 'data';
     gpfa_run_dir = sprintf('G:\\\\raeed\\\\temp\\\\gpfa_dimensionality\\\\%s_%s',file_query.monkey,file_query.date);
 
     td_preproc = load_clean_cst_data(fullfile(datadir,sprintf('%s_%s_COCST_TD.mat',file_query.monkey,file_query.date)));
