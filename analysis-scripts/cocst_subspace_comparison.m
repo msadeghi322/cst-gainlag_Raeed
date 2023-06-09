@@ -1,3 +1,7 @@
+clc 
+clear
+close all
+
 %% setup
     %dataroot = '/data/raeed/project-data/smile/cst-gainlag';
     if ispc

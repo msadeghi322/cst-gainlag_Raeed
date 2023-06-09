@@ -1,5 +1,7 @@
 % look at CST neural trajectories
-
+clc
+clear
+close all
 %% Set up
     %dataroot = '/data/raeed/project-data/smile/cst-gainlag';
     if ispc
@@ -47,6 +49,7 @@
     
     % find condition independent signal for CO trials
     td_co = trimTD(td_co,{'idx_goCueTime',floor(start_time/td_co(1).bin_size)},{'idx_goCueTime',floor(end_time/td_co(1).bin_size)});
+    
     
     [td_co,dpca_info] = runDPCA(td_co,'tgtDir',struct(...
         'signals','M1_spikes',...

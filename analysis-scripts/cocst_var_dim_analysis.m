@@ -1,5 +1,7 @@
 % look at CST neural trajectories
-
+clc
+clear
+close all
 %% Set up
     %dataroot = '/data/raeed/project-data/smile/cst-gainlag';
     if ispc
