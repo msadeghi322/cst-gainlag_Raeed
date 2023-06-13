@@ -4,6 +4,8 @@ clear
 close all
 
 %% Set up
+
+    dataroot = '/Users/Shared/Previously Relocated Items/Security/00 Postdoc at Northeastern/01 Projects/Batista Collaboration/00 CST /cst-gainlag_Raeed/All data';
     if ispc
         dataroot = 'D:\OneDrive - Northeastern University\Action Lab\01 Projects\Batista Collaboration\00 CST\01 Experiment\data\FordEarl';
     end
@@ -64,7 +66,7 @@ close all
     td_binned = dimReduce(td_binned,struct('algorithm','pca','signals','M1_spikes','num_dims',num_dims));
     
     % split data
-    [~,td_co] = getTDidx(td_binned,'task','CO');
+    [~,td_co]  = getTDidx(td_binned,'task','CO');
     [~,td_cst] = getTDidx(td_binned,'task','CST');
     %[~,td_co] = getTDidx(td_binned,'task','CST','lambda',4.1);
     
