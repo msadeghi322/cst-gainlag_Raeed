@@ -18,7 +18,7 @@
 
     %% Select a file
     
-    ID = 2; % monkey ID: Earl:1,2 Ford:3,4,5
+    ID = 1; % monkey ID: Earl:1,2 Ford:3,4,5
     
     file_query = struct(...
         'monkey','Ford',...
