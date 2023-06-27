@@ -14,63 +14,71 @@
     file_info = dir(fullfile(dataroot,'*COCST*'));
     filenames = horzcat({file_info.name})';
     fileDates = {'2019/07/02' , '2019/07/16' , '2018/06/18' , '2018/06/26' , '2018/06/27'};
-    monkeynames = {'Earl','Earl','Ford','Ford','Ford'};
-
-    %% Select a file
+    %monkeynames = {'Earl','Earl','Ford','Ford','Ford'};
+    MonkeyNames = {'Earl','Ford'};
     
-    ID = 1; % monkey ID: Earl:1,2 Ford:3,4,5
+    %% Data extraction:
+    % To make life easier, only extract data from CST trials that are
+    % successful. Eliminate all the others. 
     
-    file_query = struct(...
-        'monkey','Ford',...
-        'date','20180627');
-    %td_preproc = load_clean_cst_data(fullfile(dataroot,sprintf('%s_%s_COCST_TD.mat',file_query.monkey,file_query.date)));
-    td_preproc = load_clean_cst_data(fullfile(dataroot,sprintf('%s',filenames{ID})));
-
-    % Make sure we have CST trials
-    assert(~isempty(td_preproc),sprintf('Incomplete dataset for file %s %s\n', file_query.monkey,file_query.date))
-    assert(~isempty(td_preproc(1).M1_unit_guide),sprintf('Skipping file %s %s because no spike data...\n',file_query.monkey,file_query.date))
-
+    if ~exist(sprintf('%s/DataTableAll.mat',dataroot),'file')
+        
+        DataTable = table;
+        for ID=1:length(filenames)
+            
+            D = load_clean_cst_data(fullfile(dataroot,sprintf('%s',filenames{ID})));
+            T = struct2table(D);
+            dt = T.date_time{1}(1:10);  % only extract the date
+            T.date = cell(size(T,1),1); % add date as new variable
+            T.date(:) = {dt};
+            idx1 = contains(T.task,'CO')| contains(T.result,'F');
+            T(idx1,:) = [];
+            ind = ~ismember(DataTable.Properties.VariableNames , T.Properties.VariableNames);
+            DataTable(:,ind) = [];
+            %ind = ismember(  T.Properties.VariableNames' , Variables  );
+            DataTable = [DataTable ; T];
+        end
+        
+        save(sprintf('%s/DataTableAll',dataroot), 'DataTable' , '-v7.3');
+        
+    else
+        D = load(sprintf('%s/DataTableAll',dataroot));
+        DataTable = D.DataTable;
+        
+    end
+    
+    %% Pick monkey and date
+    
+    MonkeyID = 1;  % 1:Earl 2:Ford
+    Session = 1;   % 1,2: Earl , 3-5:Ford 
+    
+    idx = contains(DataTable.monkey, MonkeyNames(MonkeyID)) & ...
+        contains( DataTable.date , fileDates(Session) );
+    td_preproc = table2struct(DataTable(idx,:));
+    td = td_preproc;
+    
+    
+    
     %% Smoothing the data
+    
     num_dims = 8;
     softnorm = true;
     smoothsigs = true;
-    td = td_preproc;
-
+    
+    
     if smoothsigs
         td = smoothSignals(td,struct('signals','M1_spikes','width',0.050,'calc_rate',true));
     end
 
-    % trim TD to only center hold portion
+    % trim TD only for successful trials
     startSample = 0;
-    endSample   = 400;
+    endSample   = 5500;
     td = trimTD(td,{'idx_goCueTime',startSample},{'idx_goCueTime',endSample});
 
     % smooth data
     if softnorm
         td = softNormalize(td,struct('signals','M1_spikes','alpha',5));
     end
-
-
-    %% Find trial index for control strategy
-    Labels = load('Labels'); Labels = Labels.Labels;
-    
-    iip = contains(Labels.monkey,monkeynames{ID}) & ...
-         contains(Labels.date,fileDates{ID}) & ...
-         contains(Labels.ControlPolicy,'Position');
-    PosTrlId =  Labels.trial_id(iip);
-    
-    
-    iiv = contains(Labels.monkey,monkeynames{ID}) & ...
-         contains(Labels.date,fileDates{ID}) & ...
-         contains(Labels.ControlPolicy,'Velocity');
-    VelTrlId =  Labels.trial_id(iiv);
-    
-        
-    iih = contains(Labels.monkey,monkeynames{ID}) & ...
-         contains(Labels.date,fileDates{ID}) & ...
-         contains(Labels.ControlPolicy,'Hybrid');
-    HybTrlId =  Labels.trial_id(iih);
-    
 
     
     %%  Dimensionality reduction
@@ -87,18 +95,42 @@
     [~,td_cst] = getTDidx(td_binned,'task','CST');
     %[~,td_co] = getTDidx(td_binned,'task','CST','lambda',4.1);
 
-    
     CstTrlId = [td_cst.trial_id]';
     
     
-    %% CMD Scaling / PCA
+    %% Find trial index for control strategy
+    
+    ConfidenceLevel = 55;
+    
+    Labels = load(sprintf('Labels_conf_%d',ConfidenceLevel)); Labels = Labels.Labels;
+    
+    iip = contains(Labels.monkey,MonkeyNames{MonkeyID}) & ...
+        contains(Labels.date, fileDates(Session)) & ...
+         contains(Labels.ControlPolicy,'Position');
+    PosTrlId =  Labels.trial_id(iip);
+    
+    
+    iiv = contains(Labels.monkey,MonkeyNames{MonkeyID}) & ...
+        contains(Labels.date, fileDates(Session)) & ...
+         contains(Labels.ControlPolicy,'Velocity');
+    VelTrlId =  Labels.trial_id(iiv);
+    
+        
+    iih = contains(Labels.monkey,MonkeyNames{MonkeyID}) & ...
+        contains(Labels.date, fileDates(Session)) & ...
+         contains(Labels.ControlPolicy,'Hybrid');
+    HybTrlId =  Labels.trial_id(iih);
+    
+
+    
+   
+    %--------------------- CMD Scaling / PCA
     
     M1 = cat(1,td_cst.M1_spikes);
     Y = pdist(M1);
     Z = squareform(Y);
     [Yc , ic] = cmdscale(Z,5);
 
-    
     
     figure(1)
     clf
@@ -125,6 +157,7 @@
     ylabel('Config 1')
     legend('Pos','Vel','None')
     box off
+    axis equal
 
     subplot(sb1,sb2,3)
     plot(Yc(ip,3),Yc(ip,1),'.','color',GroupCl(1,:),'markersize',16); hold on
@@ -134,7 +167,8 @@
     ylabel('Config 1')
     legend('Pos','Vel','None')
     box off
-    
+    axis equal
+
     subplot(sb1,sb2,4)
     plot(Yc(ip,3),Yc(ip,2),'.','color',GroupCl(1,:),'markersize',16); hold on
     plot(Yc(iv,3),Yc(iv,2),'.','color',GroupCl(2,:),'markersize',16);
@@ -143,7 +177,8 @@
     ylabel('Config 2')
     legend('Pos','Vel','None')
     box off
-    
+    axis equal
+
     % PCA analysis
     
     M1_pca = cat(1,td_cst.M1_pca);
@@ -156,6 +191,7 @@
     ylabel('PC2')
     zlabel('PC1')
     grid
+    axis equal
 
     subplot(sb1,sb2,sb2+2)
     plot(M1_pca(ip,2),M1_pca(ip,1),'.','color',GroupCl(1,:),'markersize',16); hold on
@@ -165,6 +201,8 @@
     ylabel('PC1')
     legend('Pos','Vel','None')
     box off
+    axis equal
+
     
     subplot(sb1,sb2,sb2+3)
     plot(M1_pca(ip,3),M1_pca(ip,1),'.','color',GroupCl(1,:),'markersize',16); hold on
@@ -174,6 +212,8 @@
     ylabel('PC1')
     legend('Pos','Vel','None')
     box off
+    axis equal
+
     
     subplot(sb1,sb2,sb2+4)
     plot(M1_pca(ip,3),M1_pca(ip,2),'.','color',GroupCl(1,:),'markersize',16); hold on
@@ -183,6 +223,30 @@
     ylabel('PC2')
     legend('Pos','Vel','None')
     box off
+    axis equal
+
+    
+    
+    
+    
+    %----------------------- T-SNE analysis
+    
+    M1 = cat(1,td_cst.M1_spikes);
+    Y_sne = tsne(M1);
+    
+    figure(2)
+    clf
+    sb1=2;
+    sb2=4;
+    subplot(sb1,sb2,1)
+    hold all
+    plot(Y_sne(ip,2),Y_sne(ip,1),'.','color',GroupCl(1,:),'markersize',16)
+    plot(Y_sne(iv,2),Y_sne(iv,1),'.','color',GroupCl(2,:),'markersize',16)
+    plot(Y_sne(ih,2),Y_sne(ih,1),'.','color',GroupCl(3,:),'markersize',16,'linewidth',1.5)
+    xlabel('dim2')
+    ylabel('dim1')
+    axis equal
+    title('t-sne')
     
     return
     

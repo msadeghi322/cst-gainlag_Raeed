@@ -16,7 +16,7 @@ set(0, 'DefaultFigureRenderer', 'painters');
 
 % --------------  Choose subject --------------
 % 1: Ford, 2: Earl
-SubjectID = 2;  
+
 CriticalLambda = [3.5 , 2];
 
 % -------------- Classification threshold -----
@@ -47,7 +47,7 @@ IndividualPlots = 1; % 1:Yes  ,   0:No
 
 % ________________________________________________________________________
 
-FilePath = 'data\FordEarl\All data\';
+FilePath = '/Users/Shared/Previously Relocated Items/Security/00 Postdoc at Northeastern/01 Projects/Batista Collaboration/00 CST /cst-gainlag_Raeed/All data/';
 FileName = {'Ford_20180618_COCST_TD'
             'Ford_20180626_COCST_TD'
             'Ford_20180627_COCST_TD'
@@ -153,18 +153,7 @@ for i = 1:lngth
     TT.CursMeanPos(i,1) = mean(C_p);
     TT.CursMeanVel(i,1) = mean(C_v);
     
-%     
-%     X = TT.CursRMS_p(i); 
-%     Y = TT.CursRMS_v(i); 
-%     Z = X./Y;
-%     if Z>Threshold_up
-%         TT.ControlPolicy(i) = {'Velocity'};
-%     elseif Z<Threshold_low
-%         TT.ControlPolicy(i) = {'Position'};
-%     elseif (Z>=Threshold_low && Z<=Threshold_up)
-%         TT.ControlPolicy(i) = {'Hybrid'};
-%     end
-%     TT.RMSRatio(i) = Z;
+
     
 end
 lapsedtime = toc;
@@ -176,7 +165,7 @@ lapsedtime = toc;
 % LambdaThresh: Upper limit for lambda value to be considered in the
 % analysis
 
-ConfidenceLevel = .7;
+ConfidenceLevel = 55;
 LambdaThresh = 5;% max( CriticalLambda );
 
 SVMModel = load('SVMModel');
@@ -189,8 +178,8 @@ idx = contains(TT.result,'R') & contains(TT.task,'CST') & TT.lambda<=LambdaThres
 y1 = TT.CursRMS_p(idx)*100;
 y2 = TT.CursRMS_v(idx)*100;
 [PredictedLabel,Score] = predict(CompactSVM,[y1 , y2]);
-ii = PredictedLabel==0 & Score(:,1)>ConfidenceLevel;
-jj = PredictedLabel==1 & Score(:,2)>ConfidenceLevel;
+ii = PredictedLabel==0 & Score(:,1)>ConfidenceLevel/100;
+jj = PredictedLabel==1 & Score(:,2)>ConfidenceLevel/100;
 kk = (~ii) & (~jj);
 
 idxN = find(idx==1);
@@ -208,59 +197,10 @@ Labels.idx_endTime = [];
 Labels.hand_pos = [];
 Labels.cursor_pos = [];
 
-save('Labels','Labels');
-
-
-%%
-NewThreshold_low = .5;
-NewThreshold_up = .85;
-%Labels = RefineLabels (Labels , NewThreshold_low , NewThreshold_up);
-%Labels = RefineLabels (Labels  );
-
-figure(2)
-clf
-Mnk = {'Ford','Earl'};
-for mk = 1:length(Mnk)
-
-id = contains(Labels.monkey , Mnk{mk});
-ii = ~isnan(Labels.RMSRatio) & id==1;
-ip = contains(Labels.ControlPolicy , 'Position') & id==1;
-iv = contains(Labels.ControlPolicy , 'Velocity') & id==1;
-ih = contains(Labels.ControlPolicy , 'Hybrid') & id==1;
-X = 1:length(ii);
-
-
-subplot(3,5,mk)
-hold all
-h1=plot(Labels.CursRMS_p(ih),Labels.CursRMS_v(ih),'.k');
-h2=plot(Labels.CursRMS_p(ip),Labels.CursRMS_v(ip),'.r');
-h3=plot(Labels.CursRMS_p(iv),Labels.CursRMS_v(iv),'.b');
-xlabel('RMS_{Pos}')
-ylabel('RMS_{vel}')
-legend([h1,h2,h3],'Hybrid','Position Control','Velocity Control')
-title(Mnk{mk})
-ylim([0 .06])
-xlim([0 .04])
-text(.002,.05,sprintf('Pos: %.2f',100*sum(ip)/sum(id)))
-text(.002,.04,sprintf('Vel: %.2f',100*sum(iv)/sum(id)))
-set(gca,'fontsize',11)
-% subplot(2,2,2*mk)
-% hold all
-% h1=plot(X(ii),Labels.RMSRatio(ii),'.k');
-% h2=plot(X(ip),Labels.RMSRatio(ip),'.r');
-% h3=plot(X(iv),Labels.RMSRatio(iv),'.b');
-% plot([1,length(ii)],NewThreshold_low*[1,1],'g')
-% plot([1,length(ii)],NewThreshold_up*[1,1],'g')
-% xlabel('All Trials')
-% ylabel('RMS Ratio: (RMS_p / RMS_v)')
-% legend([h1,h2,h3],'Hybrid','Position Control','Velocity Control')
-
-end
+save(sprintf('Labels_conf_%d',ConfidenceLevel),'Labels');
 
 
 
-
-%%
 
 %% Classification
 GroupColor = [.2,.2,.2
@@ -271,21 +211,20 @@ Color3 = [.2,.2,0 ; 0,.2,.2];
 FontSize = 11;
 MarkerSize = 12;
 LineWidth = 1.5;
-
+Mnk = {'Ford','Earl'};
 
 
 SVMModel   = load('SVMModel');
 SVMModel   = SVMModel.SVMModel;
 CompactSVM = compact(SVMModel);
 CompactSVM = fitPosterior(CompactSVM, SVMModel.X, SVMModel.Y);
-Thresh = 1;
+Thresh = 3;
 
 ffg = figure(3);
 clf;
 sb1 = 3;
 sb2 = 6; %length(SList);
-ConfidenceLevel = .7;
-for ID=1:2
+for ID=1:length(Mnk)
     id = contains(Labels.monkey , Mnk{ID}) & ~isnan(Labels.lambda);
     D = Labels;
     Lmbda = D.lambda;
@@ -299,13 +238,13 @@ for ID=1:2
     
     % classified indexes
     [PredictedLabel,Score] = predict(CompactSVM,[y1 , y2]);
-    ii = PredictedLabel==0 & Score(:,1)>ConfidenceLevel;
-    jj = PredictedLabel==1 & Score(:,2)>ConfidenceLevel;
+    ii = PredictedLabel==0 & Score(:,1)>ConfidenceLevel/100;
+    jj = PredictedLabel==1 & Score(:,2)>ConfidenceLevel/100;
     kk = (~ii) & (~jj);
     
     % some example trials
-    i1 = atan2(y2,y1)>(60*pi/180); % pos control trials
-    i2 = atan2(y2,y1)<(40*pi/180); % vel control trials
+    i1 = PredictedLabel==0 & Score(:,1)>.8; % high conf pos trials
+    i2 = PredictedLabel==1 & Score(:,2)>.8; % high conf vel trials
     pos_exp_x = y1(i1);  [pos_exp_x,j1] = sort(pos_exp_x);
     pos_exp_y = y2(i1);  pos_exp_y = pos_exp_y(j1);
     vel_exp_x = y1(i2);  [vel_exp_x,j2] = sort(vel_exp_x);
