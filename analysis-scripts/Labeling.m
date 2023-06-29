@@ -165,7 +165,7 @@ lapsedtime = toc;
 % LambdaThresh: Upper limit for lambda value to be considered in the
 % analysis
 
-ConfidenceLevel = 55;
+ConfidenceLevel = 51;
 LambdaThresh = 5;% max( CriticalLambda );
 
 SVMModel = load('SVMModel');
@@ -259,18 +259,31 @@ for ID=1:length(Mnk)
     plot(vel_exp_x(end),vel_exp_y(end),'.','MarkerEdgeColor',GroupColor(3,:),'MarkerFaceColor',[1 1 1],'markersize',MarkerSize-6,'Linewidth',1);
     PosProb(ID) = mean( Score(~kk,1) );
     VelProb(ID) = mean( Score(~kk,2) );
-    text(.5,4,sprintf('P(pos.)= %.2f',PosProb(ID)))
+    text(3,.5,sprintf('P(pos.)= %.2f',PosProb(ID)))
     xlim([0,5])
     ylim([0,5])
     set(gca,'fontsize',FontSize)
     if ID==1
         ylabel(sprintf('RMS Vel (cm/s)'))
+    else
         legend('Hybrid','Pos','Vel')
     end
     xlabel(sprintf('RMS Pos (cm)'))
     title(Mnk{ID})
     
     
+    subplot(sb1,sb2,sb2+ID)
+    hold all
+    
+    C = copper(size(y1,1));
+    S = scatter(y1,y2,100,C);
+    S.Marker = '.';
+    xlim([0,5])
+    ylim([0,5])
+    if ID==1
+        ylabel(sprintf('RMS Vel (cm/s)'))
+    end
+    xlabel(sprintf('RMS Pos (cm)'))
     
 end
 
