@@ -16,7 +16,7 @@
     MonkeyNames = {'Earl','Ford'};
     
 
-    %% Data extraction:
+    %% Data extraction: Flag
     
     % To make life easier, only extract data from CST trials that are
     % successful. Eliminate all the others. 
