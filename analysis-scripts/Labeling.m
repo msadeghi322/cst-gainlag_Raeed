@@ -12,6 +12,7 @@ set(groot,'defaultAxesBox','off')
 set(0, 'DefaultFigureRenderer', 'painters');
 
 
+
 %% ************************* Important settings ***************************
 
 % --------------  Choose subject --------------
@@ -48,6 +49,9 @@ IndividualPlots = 1; % 1:Yes  ,   0:No
 % ________________________________________________________________________
 
 FilePath = '/Users/Shared/Previously Relocated Items/Security/00 Postdoc at Northeastern/01 Projects/Batista Collaboration/00 CST /cst-gainlag_Raeed/All data/';
+if ispc
+    FilePath = 'D:\OneDrive - Northeastern University\Action Lab\01 Projects\Batista Collaboration\00 CST\01 Monkey Experiment\Neural Data Analysis\cst-gainlag_Raeed\All data\';
+end
 FileName = {'Ford_20180618_COCST_TD'
             'Ford_20180626_COCST_TD'
             'Ford_20180627_COCST_TD'
@@ -165,7 +169,7 @@ lapsedtime = toc;
 % LambdaThresh: Upper limit for lambda value to be considered in the
 % analysis
 
-ConfidenceLevel = 51;
+ConfidenceLevel = 80;
 LambdaThresh = 5;% max( CriticalLambda );
 
 SVMModel = load('SVMModel');

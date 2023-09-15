@@ -8,7 +8,7 @@
 
     dataroot = '/Users/Shared/Previously Relocated Items/Security/00 Postdoc at Northeastern/01 Projects/Batista Collaboration/00 CST /cst-gainlag_Raeed/All data';
     if ispc
-        dataroot = 'D:\OneDrive - Northeastern University\Action Lab\01 Projects\Batista Collaboration\00 CST\01 Experiment\data\FordEarl';
+        dataroot = 'D:\OneDrive - Northeastern University\Action Lab\01 Projects\Batista Collaboration\00 CST\01 Monkey Experiment\Neural Data Analysis\cst-gainlag_Raeed\All data';
     end
     file_info = dir(fullfile(dataroot,'*COCST*'));
     filenames = horzcat({file_info.name})';
@@ -32,8 +32,8 @@
     
     %% Pick monkey and date
     
-    MonkeyID = 2;           % 1:Earl 2:Ford
-    Session = 3;            % 1,2: Earl , 3-5:Ford 
+    MonkeyID = 1;           % 1:Earl 2:Ford
+    Session = 1;            % 1,2: Earl , 3-5:Ford 
     num_dims = 8;           % number of dimensions for pca
     softnorm = true;        %  
     smoothsigs = true;
